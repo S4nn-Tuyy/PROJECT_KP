@@ -138,10 +138,14 @@ CREATE TRIGGER trg_customers_updated_at
 
 -- profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "profiles_select_own" ON public.profiles
-  FOR SELECT USING (auth.uid() = id OR EXISTS (
-    SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'
-  ));
+CREATE POLICY "profiles_select_all" ON public.profiles
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "profiles_insert_own" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "profiles_update_own" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id);
 
 -- customers: semua authenticated bisa lihat, hanya admin bisa CUD
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
